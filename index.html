@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YouTube Automation</title>
+<style>
+  :root { --bg:#0f1115; --card:#181b22; --line:#2a2f3a; --text:#e8eaf0; --muted:#9aa3b2; --accent:#ff4d4d; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f5f6f8; --card:#fff; --line:#dfe2e8; --text:#1a1d24; --muted:#5f6877; --accent:#d62828; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif; }
+  main { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.5rem; margin:0 0 16px; }
+  label { display:block; font-size:.875rem; color:var(--muted); margin:12px 0 4px; }
+  input[type=text], input[type=number], select, textarea {
+    width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line);
+    background:var(--card); color:var(--text); font:inherit; }
+  input[type=file] { color:var(--muted); font:inherit; }
+  textarea { resize:vertical; min-height:96px; }
+  button { padding:10px 18px; border:0; border-radius:8px; background:var(--accent); color:#fff; font:inherit; font-weight:600; cursor:pointer; }
+  button.ghost { background:transparent; color:var(--text); border:1px solid var(--line); padding:6px 12px; font-weight:500; }
+  button:disabled { opacity:.6; cursor:wait; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .actions { margin-top:16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .status { color:var(--muted); font-size:.9rem; }
+  .status.err { color:var(--accent); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  audio { width:100%; margin-top:12px; }
+  [hidden] { display:none !important; }
+
+  .tabs { display:flex; gap:8px; margin:0 0 16px; flex-wrap:wrap; }
+  .tabs button { background:transparent; color:var(--muted); border:1px solid var(--line); padding:8px 16px; font-weight:500; }
+  .tabs button.on { background:var(--card); color:var(--text); border-color:var(--accent); }
+  .tabs.main button { font-weight:600; }
+
+  /* YouTube */
+  .yt-form { display:flex; gap:8px; flex-wrap:wrap; }
+  .yt-form input[type=text] { flex:1 1 320px; width:auto; }
+  .yt-form input[type=number] { width:120px; }
+  .meta h2 { margin:20px 0 2px; font-size:1.2rem; }
+  .meta p { margin:0 0 12px; color:var(--muted); }
+  .frame-row { display:grid; grid-template-columns:260px 1fr; gap:16px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:12px; }
+  .frame-row img { width:100%; border-radius:6px; display:block; }
+  .frame-row p { margin:0; }
+  .frame-row .none { color:var(--muted); font-style:italic; }
+  a.t { display:inline-block; margin-top:6px; font-size:.85rem; color:var(--accent); text-decoration:none; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+  .grid figure { margin:0; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .grid img { width:100%; display:block; }
+  .grid figcaption { padding:6px 10px; }
+  #yt-ta { min-height:380px; }
+
+  /* Saved voices */
+  .voice { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); }
+  .voice:last-child { border-bottom:0; }
+  .voice small { color:var(--muted); display:block; }
+  .voice.sel strong { color:var(--accent); }
+
+  @media (max-width:640px) { .row2, .frame-row { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>YouTube Automation</h1>
+  <div class="tabs main" data-group="main">
+    <button data-tab="yt" class="on">YouTube extractor</button>
+    <button data-tab="voice">Voice generation</button>
+  </div>
+
+  <!-- ================= YouTube ================= -->
+  <section id="yt">
+    <form class="yt-form" id="yt-form">
+      <input type="text" id="yt-url" placeholder="https://www.youtube.com/watch?v=..." required>
+      <input type="number" id="yt-interval" min="1" placeholder="Every N s" title="Seconds between frames (blank = auto)">
+      <button id="yt-go">Extract</button>
+    </form>
+    <p class="status" id="yt-status"></p>
+    <div id="yt-out" hidden>
+      <div class="meta"><h2 id="yt-title"></h2><p id="yt-info"></p></div>
+      <div class="tabs" data-group="yt">
+        <button data-tab="yt-timeline" class="on">Timeline</button>
+        <button data-tab="yt-text">Full text</button>
+        <button data-tab="yt-frames">Frames only</button>
+      </div>
+      <div id="yt-timeline"></div>
+      <div id="yt-text" hidden>
+        <div class="actions" style="margin:0 0 8px"><button class="ghost" id="yt-copy">Copy text</button></div>
+        <textarea id="yt-ta" readonly></textarea>
+      </div>
+      <div id="yt-frames" class="grid" hidden></div>
+    </div>
+  </section>
+
+  <!-- ================= Voice ================= -->
+  <section id="voice" hidden>
+    <p class="status" id="tts-status">Loading voice models…</p>
+    <div class="tabs" data-group="voice">
+      <button data-tab="v-preset" class="on">Preset voices</button>
+      <button data-tab="v-clone">Clone a voice</button>
+      <button data-tab="v-saved">Saved voices</button>
+    </div>
+
+    <!-- Preset -->
+    <div id="v-preset" class="card">
+      <label>Text</label>
+      <textarea id="p-text" placeholder="What should be said?"></textarea>
+      <div class="row2">
+        <div><label>Speaker</label><select id="p-speaker"></select></div>
+        <div><label>Language</label><select class="lang" id="p-lang"></select></div>
+      </div>
+      <label>Style instruction (optional)</label>
+      <input type="text" id="p-instruct" placeholder="e.g. Very happy and excited / Speak slowly and calmly">
+      <div class="actions"><button data-needs-model id="p-go">Generate</button><span class="status" id="p-status"></span></div>
+      <audio id="p-audio" controls hidden></audio>
+    </div>
+
+    <!-- Clone -->
+    <div id="v-clone" class="card" hidden>
+      <div class="row2">
+        <div>
+          <label>Reference audio (any format, 3+ seconds of clean speech)</label>
+          <input type="file" id="c-audio" accept="audio/*">
+          <label>What the reference audio says (recommended)</label>
+          <textarea id="c-reftext" placeholder="Leave empty to clone from the voice only (lower similarity)."></textarea>
+        </div>
+        <div>
+          <label>Text to generate</label>
+          <textarea id="c-text" placeholder="What should the cloned voice say?"></textarea>
+          <label>Language</label><select class="lang" id="c-lang"></select>
+        </div>
+      </div>
+      <label>Save this voice as (optional)</label>
+      <input type="text" id="c-name" placeholder="e.g. My narrator voice">
+      <div class="actions"><button data-needs-model id="c-go">Clone &amp; generate</button><span class="status" id="c-status"></span></div>
+      <audio id="c-audio-out" controls hidden></audio>
+    </div>
+
+    <!-- Saved -->
+    <div id="v-saved" hidden>
+      <div class="card" id="s-list"><p class="status">No saved voices yet. Save one from the “Clone a voice” tab.</p></div>
+      <div class="card" style="margin-top:16px">
+        <label>Selected voice</label>
+        <p id="s-selected" style="margin:0">None</p>
+        <label>Text</label>
+        <textarea id="s-text" placeholder="What should this voice say?"></textarea>
+        <label>Language</label><select class="lang" id="s-lang"></select>
+        <div class="actions"><button data-needs-model id="s-go">Generate</button><span class="status" id="s-status"></span></div>
+        <audio id="s-audio" controls hidden></audio>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = s => { s = Math.floor(s); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60;
+  return (h ? h+':'+String(m).padStart(2,'0') : m) + ':' + String(x).padStart(2,'0'); };
+const title = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+// ---------- tabs ----------
+document.querySelectorAll('.tabs').forEach(group => {
+  const btns = [...group.querySelectorAll('button')];
+  btns.forEach(b => b.onclick = () => btns.forEach(x => {
+    x.classList.toggle('on', x === b);
+    $(x.dataset.tab).hidden = x !== b;
+  }));
+});
+// Open a tab from the URL hash, e.g. /#v-clone
+const openTab = id => document.querySelector(`.tabs button[data-tab="${id}"]`)?.click();
+if (location.hash) { const id = location.hash.slice(1); if (id.startsWith('v-')) openTab('voice'); openTab(id); }
+
+// ---------- shared request helper ----------
+async function call(url, opts, statusEl, btn) {
+  statusEl.className = 'status'; statusEl.textContent = 'Working…';
+  if (btn) btn.disabled = true;
+  try {
+    const r = await fetch(url, opts);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Request failed');
+    statusEl.textContent = '';
+    return d;
+  } catch (e) {
+    statusEl.className = 'status err'; statusEl.textContent = e.message;
+    return null;
+  } finally { if (btn) btn.disabled = false; }
+}
+const json = body => ({ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+const play = (el, url) => { el.src = url; el.hidden = false; el.play(); };
+
+// ================= YouTube =================
+$('yt-form').onsubmit = async e => {
+  e.preventDefault();
+  $('yt-out').hidden = true;
+  const st = $('yt-status');
+  const d = await call('/api/extract', json({ url: $('yt-url').value, interval: $('yt-interval').value }), st, $('yt-go'));
+  if (!d) return;
+  if (d.transcript_error) { st.className = 'status err'; st.textContent = d.transcript_error; }
+
+  const link = t => `https://www.youtube.com/watch?v=${d.video_id}&t=${Math.floor(t)}s`;
+  $('yt-title').textContent = d.title || d.video_id;
+  $('yt-info').textContent = [d.channel, d.duration && fmt(d.duration), `${d.frames.length} frames, 1 every ${d.interval}s`].filter(Boolean).join(' · ');
+
+  const tl = $('yt-timeline'); tl.innerHTML = '';
+  d.frames.forEach((fr, i) => {
+    const end = i + 1 < d.frames.length ? d.frames[i+1].time : Infinity;
+    const words = d.transcript.filter(s => s.start >= fr.time && s.start < end).map(s => s.text).join(' ');
+    const row = document.createElement('div'); row.className = 'frame-row';
+    row.innerHTML = `<div><img loading="lazy" src="${fr.url}"><a class="t" target="_blank" href="${link(fr.time)}">▶ ${fmt(fr.time)}</a></div><p></p>`;
+    const p = row.querySelector('p');
+    if (words) p.textContent = words; else { p.textContent = 'No speech in this section.'; p.className = 'none'; }
+    tl.appendChild(row);
+  });
+  $('yt-ta').value = d.transcript.map(s => `[${fmt(s.start)}] ${s.text}`).join('\n') || '(no transcript available)';
+  $('yt-frames').innerHTML = d.frames.map(fr =>
+    `<figure><a href="${fr.url}" target="_blank"><img loading="lazy" src="${fr.url}"></a><figcaption><a class="t" target="_blank" href="${link(fr.time)}">▶ ${fmt(fr.time)}</a></figcaption></figure>`).join('');
+  $('yt-out').hidden = false;
+};
+$('yt-copy').onclick = async () => {
+  await navigator.clipboard.writeText($('yt-ta').value);
+  $('yt-copy').textContent = 'Copied!'; setTimeout(() => $('yt-copy').textContent = 'Copy text', 1500);
+};
+
+// ================= Voice =================
+let selectedVoice = null;
+
+async function waitForModels() {
+  const st = $('tts-status');
+  const lock = on => document.querySelectorAll('[data-needs-model]').forEach(b => b.disabled = on);
+  lock(true);
+  while (true) {
+    const d = await (await fetch('/api/tts/status')).json();
+    if (d.error) { st.className = 'status err'; st.textContent = 'Model loading failed: ' + d.error; return; }
+    if (d.ready) {
+      document.querySelectorAll('select.lang').forEach(s =>
+        s.innerHTML = d.languages.map(l => `<option value="${l}">${title(l)}</option>`).join(''));
+      $('p-speaker').innerHTML = d.speakers.map(s => `<option value="${s}">${title(s)}</option>`).join('');
+      st.hidden = true; lock(false); return;
+    }
+    await new Promise(r => setTimeout(r, 3000));
+  }
+}
+
+// Preset
+$('p-go').onclick = async () => {
+  const d = await call('/api/tts/preset', json({
+    text: $('p-text').value, speaker: $('p-speaker').value, language: $('p-lang').value, instruct: $('p-instruct').value,
+  }), $('p-status'), $('p-go'));
+  if (d) play($('p-audio'), d.audio_url);
+};
+
+// Clone
+$('c-go').onclick = async () => {
+  const fd = new FormData();
+  if ($('c-audio').files[0]) fd.append('audio', $('c-audio').files[0]);
+  fd.append('ref_text', $('c-reftext').value);
+  fd.append('text', $('c-text').value);
+  fd.append('language', $('c-lang').value);
+  fd.append('save_name', $('c-name').value);
+  const d = await call('/api/tts/clone', { method:'POST', body: fd }, $('c-status'), $('c-go'));
+  if (!d) return;
+  play($('c-audio-out'), d.audio_url);
+  if (d.voice) { $('c-status').textContent = `Saved as “${d.voice.name}”.`; $('c-name').value = ''; loadVoices(); }
+};
+
+// Saved voices
+async function loadVoices() {
+  const voices = await (await fetch('/api/voices')).json();
+  const list = $('s-list');
+  if (!voices.length) { list.innerHTML = '<p class="status">No saved voices yet. Save one from the “Clone a voice” tab.</p>'; return; }
+  list.innerHTML = '';
+  voices.forEach(v => {
+    const row = document.createElement('div');
+    row.className = 'voice' + (selectedVoice?.id === v.id ? ' sel' : '');
+    row.innerHTML = `<div><strong></strong><small></small></div>
+      <div class="actions" style="margin:0"><audio controls preload="none" src="/media/voices/${v.id}/ref.wav" style="width:200px;margin:0"></audio>
+      <button class="ghost" data-act="use">Use</button><button class="ghost" data-act="del">Delete</button></div>`;
+    row.querySelector('strong').textContent = v.name;
+    row.querySelector('small').textContent = v.x_vector_only ? 'Voice only (no reference text)' : 'With reference text';
+    row.querySelector('[data-act=use]').onclick = () => { selectedVoice = v; $('s-selected').textContent = v.name; loadVoices(); };
+    row.querySelector('[data-act=del]').onclick = async () => {
+      if (!confirm(`Delete voice “${v.name}”?`)) return;
+      await fetch(`/api/voices/${v.id}`, { method:'DELETE' });
+      if (selectedVoice?.id === v.id) { selectedVoice = null; $('s-selected').textContent = 'None'; }
+      loadVoices();
+    };
+    list.appendChild(row);
+  });
+}
+
+$('s-go').onclick = async () => {
+  if (!selectedVoice) { $('s-status').className = 'status err'; $('s-status').textContent = 'Pick a voice first.'; return; }
+  const d = await call(`/api/voices/${selectedVoice.id}/generate`, json({ text: $('s-text').value, language: $('s-lang').value }),
+    $('s-status'), $('s-go'));
+  if (d) play($('s-audio'), d.audio_url);
+};
+
+waitForModels();
+loadVoices();
+</script>
+</body>
+</html>

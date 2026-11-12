@@ -1,0 +1,7 @@
+.venv/
+data/
+__pycache__/
+*.pyc
+.env
+Qwen3-TTS/
+*.log
