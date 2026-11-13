@@ -1,138 +1,76 @@
-# Voice Cloner Application
+# Sonora · Voice Cloning & Speech Generation
 
-A local Flask web app for creating short-form video assets:
+A standalone voice-cloning SaaS powered by **Qwen3-TTS and NVIDIA CUDA**, with private accounts, reusable voices, background speech jobs, audio downloads, credits and subscription billing integration.
 
-- **Voice generation** with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS)
-  - **Preset voices**: 9 built-in speakers with optional style instructions ("Very happy", "Speak slowly and calmly").
-  - **Voice cloning**: clone any voice from a short clip (MP3, WAV, M4A, OGG…).
-  - **Saved voices**: store cloned voices in SQLite and reuse them without re-uploading.
-- **YouTube extractor**: paste a link and get the transcript plus frames from the video.
+The new application is in **[`voice-clone-saas/`](voice-clone-saas/README.md)**. Its frontend, backend, configuration, database migrations, assets and documentation are self-contained. The original local voice-cloning/YouTube app remains in the repository root; its instructions are preserved in the [legacy application guide](docs/legacy-voice-cloner.md).
 
-Everything runs on your own machine. No API keys are needed.
+## Documentation languages
 
-## Screenshots
+[English](voice-clone-saas/README.md) · [中文](voice-clone-saas/docs/i18n/README.zh-CN.md) · [日本語](voice-clone-saas/docs/i18n/README.ja.md) · [한국어](voice-clone-saas/docs/i18n/README.ko.md) · [Deutsch](voice-clone-saas/docs/i18n/README.de.md) · [Français](voice-clone-saas/docs/i18n/README.fr.md) · [Русский](voice-clone-saas/docs/i18n/README.ru.md) · [Português](voice-clone-saas/docs/i18n/README.pt.md) · [Español](voice-clone-saas/docs/i18n/README.es.md) · [Italiano](voice-clone-saas/docs/i18n/README.it.md)
 
-| Preset voices | Clone a voice |
-|---|---|
-| ![Preset voices](docs/screenshots/preset-voices.png) | ![Clone a voice](docs/screenshots/clone-voice.png) |
+Translations are getting-started guides. Full operational details are in the [main README](voice-clone-saas/README.md), [deployment guide](voice-clone-saas/docs/setup.md), [API reference](voice-clone-saas/docs/api.md) and [verification notes](voice-clone-saas/docs/verification.md).
 
-| Saved voices | YouTube extractor |
-|---|---|
-| ![Saved voices](docs/screenshots/saved-voices.png) | ![YouTube extractor](docs/screenshots/youtube.png) |
+## What is implemented
 
-## Requirements
+- Registration, login/logout, password reset, profiles and private user-owned voice libraries.
+- Validated voice uploads, reusable cloned voices, preset speech, ten speech languages, previews, WAV downloads and generation history.
+- A responsive landing page and dashboard, with real synthetic preset/clone audio demonstrations.
+- An independent Qwen background worker, persistent SQLite jobs, atomic credit reservations, idempotent requests, failure refunds and usage history.
+- Stripe Checkout, subscription management through Customer Portal, signed webhooks and invoice-based credit allocations.
+- Argon2 password hashing, revocable cookie sessions, CSRF/origin checks, rate limits and authenticated audio access.
 
-- **NVIDIA GPU** with CUDA. Both voice models together need roughly 10 GB of free VRAM.
-- **Python 3.12** (uv installs it for you).
-- **[uv](https://docs.astral.sh/uv/getting-started/installation/)** package manager.
-- About **10 GB of free disk** for the model downloads.
+**Status:** local speech synthesis and voice cloning work and have been tested with real GPU inference. Live Stripe billing and SMTP email delivery still require configuration and end-to-end verification. This repository is not a claim that the service is already deployed or production-certified.
 
-ffmpeg is bundled through the `imageio-ffmpeg` package, so you don't need to install it separately.
+## Quick start — Windows / PowerShell
 
-## Install and run
+Install Python 3.12 and [uv](https://docs.astral.sh/uv/), and provide a CUDA-capable NVIDIA GPU for practical generation speed. The dependency lock selects CUDA-enabled PyTorch; models download on first startup.
 
-```bash
+```powershell
 git clone https://github.com/TalhaFaredi/Voice-clonner-Application.git
-cd Voice-clonner-Application
-uv sync          # creates .venv and installs everything, including CUDA PyTorch
-uv run app.py
+cd Voice-clonner-Application/voice-clone-saas
+uv sync --extra worker --extra dev
+if (-not (Test-Path backend/.env)) { Copy-Item backend/.env.example backend/.env }
 ```
 
-Open **http://127.0.0.1:5000**.
+From `voice-clone-saas/`, open three separate terminals and run one command in each:
 
-On start, the voice models load in the background. The voice buttons stay disabled until the models are ready. The YouTube extractor works right away.
-
-## How the models are downloaded and cached
-
-The app uses two models from Hugging Face:
-
-| Used for | Model | Setting |
-|---|---|---|
-| Preset voices | `Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice` | `PRESET_MODEL` |
-| Voice cloning | `Qwen/Qwen3-TTS-12Hz-1.7B-Base` | `CLONE_MODEL` |
-
-- **First start:** nothing to do by hand. On the first `uv run app.py`, both models download automatically. They are several GB each, so the first start takes a few minutes, depending on your connection.
-- **Cache location:** the standard Hugging Face cache.
-  - Windows: `C:\Users\<you>\.cache\huggingface\hub\`
-  - Linux / macOS: `~/.cache/huggingface/hub/`
-- **Later starts:** the models load from the cache with no download. Startup takes about a minute while they load onto the GPU.
-- **Moving the cache:** set `HF_HOME` before starting, for example `HF_HOME=D:\hf-cache`.
-- **Downloading ahead of time** (optional):
-  ```bash
-  uv run python -c "from huggingface_hub import snapshot_download as d; d('Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice'); d('Qwen/Qwen3-TTS-12Hz-1.7B-Base')"
-  ```
-- **Running offline:** after the first download, set `HF_HUB_OFFLINE=1` to stop any network checks.
-- **Smaller model:** for a GPU with less memory, use the 0.6B cloning model: `CLONE_MODEL=Qwen/Qwen3-TTS-12Hz-0.6B-Base`. It uses less VRAM and gives lower quality.
-
-## Configuration
-
-Set these as environment variables before `uv run app.py`:
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `PRESET_MODEL` | `Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice` | Model for preset voices |
-| `CLONE_MODEL` | `Qwen/Qwen3-TTS-12Hz-1.7B-Base` | Model for cloning and saved voices |
-| `TTS_DEVICE` | `cuda:0` | GPU to use |
-| `HF_HOME` | Hugging Face default | Where models are cached |
-
-## Using the app
-
-**Preset voices**: type text, pick a speaker and language, and optionally add a style instruction.
-
-**Clone a voice**
-1. Upload a clean clip of 3 seconds or more, with one speaker and little background noise.
-2. Type exactly what the clip says. This is recommended: leaving it empty clones from the voice only, which sounds less similar.
-3. Type the new text, then click **Clone & generate**.
-4. To keep the voice, give it a name in **Save this voice as**.
-
-**Saved voices**: click **Use** on a voice, type text, and click **Generate**. Each voice has a preview player and a delete button.
-
-**Note on emotion:** style instructions only work with preset voices. The cloning model (`Base`) doesn't support them. To get a cloned voice in a certain mood, record the reference clip in that mood and save one voice per mood.
-
-## Where data is stored
-
-Everything is in `data/`, which is git-ignored:
-
-```
-data/
-├── app.db             SQLite: saved voice records
-├── voices/<id>/
-│   ├── ref.wav        reference clip (converted to 24 kHz mono)
-│   └── prompt.pt      precomputed voice prompt (fast reuse)
-├── outputs/           generated audio (.wav)
-├── jobs/              YouTube frames (last 5 runs kept)
-└── tmp/               temporary uploads
+```powershell
+./scripts/start.ps1 api
+./scripts/start.ps1 worker
+./scripts/start.ps1 frontend
 ```
 
-## Project layout
+Open **http://localhost:5173** and register an account. The API runs on **http://localhost:8010**. Check `/api/studio/options` for a fresh `worker.status: ready` response before generating audio. Use the same hostname for frontend and API. No default login or administrator password is supplied.
 
-| File | Purpose |
-|---|---|
-| `app.py` | Flask routes |
-| `tts.py` | Qwen3-TTS loading, preset generation, cloning, saved voices |
-| `db.py` | SQLite access |
-| `youtube.py` | YouTube transcript and frame extraction |
-| `config.py` | Paths, model names, device |
-| `index.html` | Web page (vanilla HTML/JS) |
-| `pyproject.toml` / `uv.lock` | Dependencies |
-| `specs/v1.md` | v1 spec (YouTube extractor) |
+## NVIDIA GPU support
 
-## API
+The worker uses `TTS_DEVICE=cuda:0` by default, so Qwen inference runs on the first NVIDIA CUDA GPU. This installation was verified on an **NVIDIA RTX A6000 with 48 GB VRAM**. That is tested hardware, not a minimum requirement or a guarantee of performance on other GPUs. GPU utilization increases during synthesis and can be low while idle.
 
-| Method | Path | Body | Returns |
-|---|---|---|---|
-| GET | `/api/tts/status` | – | `ready`, `languages`, `speakers` |
-| POST | `/api/tts/preset` | JSON: `text`, `speaker`, `language`, `instruct?` | `audio_url` |
-| POST | `/api/tts/clone` | form: `audio`, `text`, `ref_text?`, `language`, `save_name?` | `audio_url`, `voice?` |
-| GET | `/api/voices` | – | list of saved voices |
-| POST | `/api/voices` | form: `name`, `audio`, `ref_text?` | saved voice |
-| POST | `/api/voices/<id>/generate` | JSON: `text`, `language` | `audio_url` |
-| DELETE | `/api/voices/<id>` | – | `ok` |
-| POST | `/api/extract` | JSON: `url`, `interval?` | transcript and frames |
+```powershell
+nvidia-smi
+./.venv/Scripts/python.exe -c "import torch; print('CUDA:', torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'No CUDA GPU available')"
+```
 
-## Troubleshooting
+`TTS_DEVICE=cpu` is also supported but slower. Configure it in `backend/.env` and restart the worker. The local voice engine does not require an OpenRouter, NVIDIA API, HeyGen or ElevenLabs API key.
 
-- **"An Application Control policy has blocked this file" (Windows):** Smart App Control is blocking the Python or PyTorch files. Turn it off in *Windows Security → App & browser control → Smart App Control*. On many Windows versions it can't be turned back on without resetting Windows.
-- **Voice buttons stay disabled:** the models are still downloading or loading. Watch the console. The page shows an error if loading fails.
-- **CUDA out of memory:** close other GPU apps, or switch to the 0.6B cloning model (see above).
-- **Slow generation on Windows:** FlashAttention isn't available on Windows, so the app uses PyTorch's default attention. It works, a little slower.
+## Supported speech languages
+
+Chinese · English · Japanese · Korean · German · French · Russian · Portuguese · Spanish · Italian.
+
+Select `auto` to detect the script's language. Language selection controls speech generation; **it does not translate the script**. The current interface is English; the linked translated READMEs do not add interface translations or model-language support. See the [native names and API values](voice-clone-saas/README.md#supported-speech-languages).
+
+## Verification
+
+From `voice-clone-saas/backend/`:
+
+```powershell
+../.venv/Scripts/python.exe -m unittest discover -s tests -v
+```
+
+Verified during implementation: **13 backend tests**, desktop/mobile browser flows, real preset speech → saved voice clone → generated speech, exact credit deductions, and private audio loading in Chrome. Stripe/SMTP unit tests use mocked external calls; real transactions and email delivery are separate checks. [Detailed verification](voice-clone-saas/docs/verification.md).
+
+## Before public deployment
+
+Configure Stripe keys, recurring price IDs, Customer Portal and webhook signing; configure and test SMTP; deploy behind HTTPS; set up backups, monitoring and supervised processes; and complete the [deployment checklist](voice-clone-saas/docs/setup.md).
+
+Never commit `.env`, databases, private audio, user voice prompts or installed environments. Only the intentionally public synthetic audio demonstrations are included in Git.
