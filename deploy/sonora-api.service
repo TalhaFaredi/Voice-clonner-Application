@@ -1,0 +1,15 @@
+[Unit]
+Description=Sonora API
+After=network.target
+
+[Service]
+User=sonora
+WorkingDirectory=/srv/sonora/backend
+ExecStart=/srv/sonora/.venv/bin/python run.py
+Restart=always
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/srv/sonora/backend/storage
+
+[Install]
+WantedBy=multi-user.target

@@ -1,7 +1,8 @@
 .venv/
-data/
-__pycache__/
+**/.env
+**/__pycache__/
 *.pyc
-.env
-Qwen3-TTS/
+backend/storage/*
+!backend/storage/.gitkeep
 *.log
+.pytest_cache/
