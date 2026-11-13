@@ -1,0 +1,10 @@
+Flask>=3.1,<4
+python-dotenv>=1.2,<2
+argon2-cffi>=23,<26
+stripe>=12,<16
+imageio-ffmpeg>=0.6,<1
+soundfile>=0.13,<1
+qwen-tts==0.1.1
+torch>=2.6
+torchaudio>=2.6
+waitress>=3,<4
