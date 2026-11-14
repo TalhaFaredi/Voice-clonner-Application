@@ -195,8 +195,8 @@ app.addEventListener('change',event=>{
     const accurate=event.target.value==='text_conditioned';
     const transcript=app.querySelector('#clone-form textarea[name=ref_text]');transcript.required=accurate;transcript.disabled=!accurate;
     document.getElementById('reference-transcript-label').hidden=!accurate;
-    document.getElementById('reference-guidance').textContent=accurate?'Enter exactly what is spoken in the recording, not the new speech you want to generate.':
-      'Voice-only mode uses a speaker embedding without transcript alignment. Similarity may be lower than an accurate recording + transcript clone.';
+    document.getElementById('reference-guidance').textContent=accurate?'More accurate, but takes longer. Check that the transcript matches exactly what is spoken in the recording, not the new speech you want to generate.':
+      'Faster: voice-only mode skips the transcript and uses only the sound of the voice, so it usually finishes earlier. Similarity may be lower than the transcription version.';
   }
 });
 app.addEventListener('submit',async event=>{
