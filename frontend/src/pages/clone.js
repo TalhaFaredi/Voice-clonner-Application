@@ -1,18 +1,23 @@
 import {heading} from './workspace.js';
-import {icon} from '../components/ui.js';
+import {icon,esc} from '../components/ui.js';
 import {voiceCards} from './voices.js';
 
-export function clonePage(voices){
+export function clonePage(voices,options={}){
+  const langs=options.transcribe_languages||{auto:'Detect automatically'};
+  const sttNote=options.transcribe_ready===false?'Automatic transcription is not configured (OPENROUTER_API_KEY missing). Type the transcript yourself.':'After you choose a file, it is transcribed automatically with MAI-Transcribe-2.';
   return `${heading('SOMETHING ONLY YOU CAN SAY','Create a voice of your own.','Upload a recording, create a reusable clone, and hear a real generated sample.')}
     <div class="clone-grid"><section class="panel"><div class="panel-title"><h2>Create a saved voice</h2><span class="badge">1,000 credits · sample included</span></div>
       <form id="clone-form">
         <label>Voice name<input name="name" placeholder="e.g. My storytelling voice" maxlength="80" required></label>
         <label class="upload-zone" for="sample">${icon('mic')}<strong>Choose your voice recording</strong><span>One speaker, clear speech, no background music</span><small>WAV, MP3, M4A, OGG, FLAC, WebM · Max 20 MB · 3–120 seconds</small><input id="sample" name="audio" type="file" accept=".wav,.mp3,.m4a,.ogg,.flac,.webm" required></label>
         <audio id="upload-preview" controls hidden preload="metadata"></audio>
+        <div class="form-row transcribe-row"><label>Language spoken in the recording<select id="transcribe-language" name="transcribe_language" data-names="${esc(JSON.stringify(langs))}">${Object.entries(langs).map(([code,name])=>`<option value="${esc(code)}">${esc(name)}</option>`).join('')}</select></label><button type="button" class="button outline" id="retranscribe" hidden>${icon('sound')} Transcribe again</button></div>
+        <p class="transcribe-status" id="transcribe-status">${esc(sttNote)}</p>
         <label>Cloning method<select name="clone_mode"><option value="text_conditioned">Accurate clone · recording + exact transcript</option><option value="speaker_embedding">Quick voice-only clone · lower similarity</option></select></label>
-        <label id="reference-transcript-label">Exact words spoken in the recording<textarea name="ref_text" maxlength="4000" required placeholder="Transcribe the uploaded recording exactly. This is NOT the new speech you want to generate."></textarea></label>
+        <label id="reference-transcript-label">Transcription of the recording <span class="muted">(edit if anything is wrong)</span><textarea name="ref_text" maxlength="4000" required rows="5" placeholder="The transcription of your uploaded recording appears here. You can also type it yourself."></textarea></label>
         <p class="reference-guidance" id="reference-guidance">Matching the transcript to the recording helps preserve the voice. A different script here can reduce accuracy. Use 10–30 seconds of clean, natural speech when possible.</p>
-        <details class="reference-details"><summary>Change the included sample sentence (optional)</summary><label>New speech for the generated sample<textarea name="preview_text" maxlength="250" placeholder="Hello. This is a short preview of my saved voice."></textarea></label><small>Write this short sentence in your preferred supported language. This is separate from the recording transcript.</small></details>
+        <label>Text to speak in your cloned voice <span class="muted">(used for the generated sample)</span><textarea name="preview_text" maxlength="250" rows="3" placeholder="Hello. This is a short preview of my saved voice."></textarea></label>
+        <p class="reference-guidance">Write up to 250 characters in a supported language. This is the new speech your clone will say. Leave it empty to use the default sentence.</p>
         <label class="checkbox"><input type="checkbox" name="consent" required><span>I own this voice, or have explicit permission from its owner to create and use a clone.</span></label>
         <div class="form-error" role="alert"></div><div class="editor-bottom"><span class="privacy-note">${icon('check')} Saved privately to your account</span><button class="button dark" type="submit">Create & save voice ${icon('arrow')}</button></div>
       </form><div id="active-job"></div>

@@ -10,6 +10,7 @@ from ..middleware.security import authenticated, limit
 from ..models.database import rows, transaction
 from ..services.credits import change
 from ..services.files import user_dir, validate_sample
+from ..services.transcribe import TRANSCRIBE_LANGUAGES, transcribe_upload
 
 bp = Blueprint('library', __name__)
 LANGUAGES = ['auto','chinese','english','japanese','korean','german','french','russian','portuguese','spanish','italian']
@@ -60,6 +61,8 @@ def insert_job(db, identifier, key, fingerprint, cost, kind, voice_id=None, text
 def options():
     worker = rows('SELECT * FROM worker_status ORDER BY heartbeat DESC LIMIT 1',one=True)
     return jsonify(languages=LANGUAGES,speakers=SPEAKERS,clone_cost=1000,credits_per_character=1,
+                   transcribe_languages=TRANSCRIBE_LANGUAGES,
+                   transcribe_ready=bool(current_app.config['OPENROUTER_API_KEY']),
                    worker=worker if worker and worker['heartbeat']>time.time()-120 else None)
 
 
@@ -131,6 +134,17 @@ def clone():
         if directory.exists():
             shutil.rmtree(directory)
         raise
+
+
+@bp.post('/voices/transcribe')
+@authenticated
+def transcribe():
+    """Transcribe an uploaded recording so the user can review it as the reference transcript."""
+    limit('transcribe',30,3600)
+    upload = request.files.get('audio')
+    if not upload or not upload.filename:
+        abort(400,'Upload a voice sample to transcribe.')
+    return jsonify(transcribe_upload(upload,request.form.get('language','auto')))
 
 
 @bp.patch('/voices/<identifier>')

@@ -29,7 +29,8 @@ async function render(){
     await refreshUser();
     let content;
     if(page==='studio') {const [stats,voices,options]=await Promise.all([api('/dashboard'),api('/voices'),api('/studio/options')]); pageVoices=voices;workerState=options.worker;content=studio(user,stats,voices,options);}
-    if(page==='voices'||page==='clone'){pageVoices=await api('/voices');content=page==='clone'?clonePage(pageVoices):voiceLibrary(pageVoices);}
+    if(page==='voices'){pageVoices=await api('/voices');content=voiceLibrary(pageVoices);}
+    if(page==='clone'){const [voices,options]=await Promise.all([api('/voices'),api('/studio/options')]);pageVoices=voices;content=clonePage(voices,options);}
     if(page==='history')content=`${heading('EVERY GOOD TAKE, IN ONE PLACE','Your creations.','Listen again, download your audio, or make room for something new.')}<section>${historyList(await api('/jobs'))}</section><button class="button outline" id="history-next" data-page="1">Load older creations</button>`;
     if(page==='billing')content=billingPage(await api('/billing'),await api('/plans'));
     if(page==='settings')content=settingsPage(user);
@@ -153,6 +154,31 @@ async function watchJob(id){
   }
 }
 
+let transcribeRun=0;
+async function transcribeSample(){
+  const file=document.getElementById('sample')?.files[0];if(!file)return;
+  const run=++transcribeRun,status=document.getElementById('transcribe-status');
+  const textarea=app.querySelector('#clone-form textarea[name=ref_text]');
+  const language=document.getElementById('transcribe-language').value;
+  const mode=app.querySelector('#clone-form select[name=clone_mode]');
+  if(mode.value!=='text_conditioned'){mode.value='text_conditioned';mode.dispatchEvent(new Event('change',{bubbles:true}));}
+  status.className='transcribe-status is-working';status.innerHTML='<span class="mini-spinner"></span>Transcribing your recording with MAI-Transcribe-2…';
+  textarea.readOnly=true;
+  const data=new FormData();data.set('audio',file);data.set('language',language);
+  try{
+    const result=await api('/voices/transcribe',{method:'POST',data});
+    if(run!==transcribeRun)return;
+    textarea.value=result.text;
+    const names=JSON.parse(document.getElementById('transcribe-language').dataset.names||'{}');
+    const detected=result.detected_language?` · detected: ${result.detected_language}`:'';
+    status.className='transcribe-status is-done';
+    status.textContent=`Transcribed (${language==='auto'?'auto-detected language':names[language]||language}${detected}). Check it below and fix any mistakes.`;
+  }catch(error){
+    if(run!==transcribeRun)return;
+    status.className='transcribe-status is-failed';status.textContent=error.message+' You can still type the transcript yourself.';
+  }finally{if(run===transcribeRun)textarea.readOnly=false;}
+}
+
 app.addEventListener('input',event=>{if(event.target.id==='script'){document.getElementById('char-count').textContent=[...event.target.value].length;document.getElementById('credit-cost').textContent=number([...event.target.value.trim()].length)+' credits';}});
 app.addEventListener('change',event=>{
   if(event.target.id==='sample'){
@@ -160,7 +186,10 @@ app.addEventListener('change',event=>{
     if(uploadURL)URL.revokeObjectURL(uploadURL);
     const preview=document.getElementById('upload-preview');preview.hidden=!file;
     if(file){uploadURL=URL.createObjectURL(file);preview.src=uploadURL;}
+    document.getElementById('retranscribe').hidden=!file;
+    if(file)transcribeSample();
   }
+  if(event.target.id==='transcribe-language'&&document.getElementById('sample')?.files[0])transcribeSample();
   if(event.target.matches('#generation-form select[name=voice]'))updateVoiceSelection();
   if(event.target.matches('#clone-form select[name=clone_mode]')){
     const accurate=event.target.value==='text_conditioned';
@@ -211,6 +240,7 @@ app.addEventListener('submit',async event=>{
   finally{if(form.id!=='clone-form'||!document.querySelector('.clone-progress.is-active')){button.disabled=false;button.innerHTML=original;}}
 });
 
+app.addEventListener('click',event=>{if(event.target.closest('#retranscribe')){event.preventDefault();transcribeSample();}});
 app.addEventListener('click',async event=>{
   const button=event.target.closest('[data-action],#history-next');if(!button)return;
   const action=button.dataset.action;button.disabled=true;

@@ -19,7 +19,9 @@ class Settings:
     CLONE_MODEL = os.getenv('CLONE_MODEL', 'Qwen/Qwen3-TTS-12Hz-1.7B-Base')
     PRESET_MODEL = os.getenv('PRESET_MODEL', 'Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice')
     TTS_DEVICE = os.getenv('TTS_DEVICE', 'cuda:0')
-    CLONE_PREVIEW_TEXT = 'Hello. This is a short preview of my saved voice.'
+    OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '')
+    TRANSCRIBE_MODEL = os.getenv('TRANSCRIBE_MODEL', 'microsoft/mai-transcribe-2')
+    CLONE_PREVIEW_TEXT ='Hello. This is a short preview of my saved voice.'
     SMTP_HOST = os.getenv('SMTP_HOST', '')
     SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
     SMTP_USER = os.getenv('SMTP_USER', '')
