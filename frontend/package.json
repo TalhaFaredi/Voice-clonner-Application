@@ -1,1 +1,1 @@
-{"name":"sonora-frontend","private":true,"version":"1.0.0","type":"module","scripts":{"dev":"python serve.py","start":"python serve.py"},"description":"Buildless, dependency-free ES module frontend. Python serve.py can be used without Node."}
+{"name":"mellifon-frontend","private":true,"version":"1.0.0","type":"module","scripts":{"dev":"python serve.py","start":"python serve.py"},"description":"Buildless, dependency-free ES module frontend. Python serve.py can be used without Node."}

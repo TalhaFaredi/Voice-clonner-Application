@@ -1,8 +1,8 @@
-# Sonora · Plattform für Stimmklonen und Sprachsynthese
+# Mellifon · Plattform für Stimmklonen und Sprachsynthese
 
 [English](../../README.md) · [Weitere Dokumentationssprachen](README.md)
 
-Sonora ist eine eigenständige Sprach-SaaS im Ordner `Voice-clonner-Application/`. Sie importiert keinen Anwendungscode aus der bestehenden YouTube-App und ruft deren API nicht auf.
+Mellifon ist eine eigenständige Sprach-SaaS im Ordner `Voice-clonner-Application/`. Sie importiert keinen Anwendungscode aus der bestehenden YouTube-App und ruft deren API nicht auf.
 
 ## Funktionen und aktueller Stand
 

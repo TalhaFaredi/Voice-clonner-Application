@@ -1,4 +1,4 @@
-export const BASE = window.SONORA_API || '/api';
+export const BASE = window.MELLIFON_API || '/api';
 let csrf = '';
 export function setCSRF(value) { csrf = value || ''; }
 export async function api(path, {method='GET', data, key}={}) {

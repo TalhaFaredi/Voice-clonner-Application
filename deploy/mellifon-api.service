@@ -1,0 +1,15 @@
+[Unit]
+Description=Mellifon API
+After=network.target
+
+[Service]
+User=mellifon
+WorkingDirectory=/srv/mellifon/backend
+ExecStart=/srv/mellifon/.venv/bin/python run.py
+Restart=always
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/srv/mellifon/backend/storage
+
+[Install]
+WantedBy=multi-user.target

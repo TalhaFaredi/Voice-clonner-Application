@@ -27,7 +27,7 @@ def create_app(overrides=None):
 
     @app.get('/api/health')
     def health():
-        return jsonify(status='ok', service='sonora', time=time.time())
+        return jsonify(status='ok', service='mellifon', time=time.time())
 
     @app.after_request
     def headers(response):

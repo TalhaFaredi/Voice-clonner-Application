@@ -142,7 +142,7 @@ def forgot_password():
             db.execute('INSERT INTO resets(token_hash,user_id,expires) VALUES(?,?,?)',
                        (digest(token),user['id'],time.time()+1800))
         message = EmailMessage()
-        message['Subject'] = 'Reset your Sonora password'
+        message['Subject'] = 'Reset your Mellifon password'
         message['From'], message['To'] = current_app.config['SMTP_FROM'], user['email']
         message.set_content(f"Reset your password within 30 minutes:\n{current_app.config['PUBLIC_URL']}/#/reset?token={token}\n\nIf you didn't request this, ignore this email.")
         try:

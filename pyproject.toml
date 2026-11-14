@@ -1,5 +1,5 @@
 [project]
-name = "sonora"
+name = "mellifon"
 version = "1.0.0"
 requires-python = ">=3.12,<3.13"
 dependencies = ["flask>=3.1,<4", "python-dotenv>=1.2,<2", "argon2-cffi>=23,<26", "stripe>=12,<16", "imageio-ffmpeg>=0.6,<1", "soundfile>=0.13,<1", "waitress>=3,<4"]

@@ -1,0 +1,7 @@
+[Unit]
+Description=Mellifon database and audio backup
+
+[Service]
+Type=oneshot
+User=mellifon
+ExecStart=/srv/mellifon/.venv/bin/python /srv/mellifon/scripts/backup.py /var/backups/mellifon --keep 14

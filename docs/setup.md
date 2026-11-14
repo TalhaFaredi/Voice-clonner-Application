@@ -26,14 +26,14 @@ Set SMTP host, port (STARTTLS), user/password, and a verified `SMTP_FROM`. Passw
 
 Use a Linux host with a suitable GPU, persistent local disk and one Qwen worker per GPU. Run the API and worker as dedicated unprivileged services supervised by systemd or your container orchestrator. Install the worker's Torch build for your CUDA stack. SQLite/WAL is appropriate for an initial single-host deployment; use a server database/object storage before horizontal scaling.
 
-Set `APP_ENV=production`, `PUBLIC_URL=https://your-domain.example`, and `ALLOWED_ORIGINS=https://your-domain.example`. Change `frontend/public/config.js` to `window.SONORA_API = '/api';`. Serve frontend static files with Nginx; proxy `/api/` to loopback port 8010. Forward neither arbitrary client IP headers nor cookies to third parties. Behind Nginx set `TRUSTED_PROXY_COUNT=1` in `backend/.env` so rate limits use the real client IP (otherwise every user shares the proxy's address). Leave it `0` when clients reach the API directly; forwarding headers are then ignored and cannot be spoofed. The count must equal the exact number of proxies; `deploy/nginx.conf` overwrites `X-Forwarded-For`. Configure TLS and matching security headers/CSP. The development frontend server is not the production web server.
+Set `APP_ENV=production`, `PUBLIC_URL=https://your-domain.example`, and `ALLOWED_ORIGINS=https://your-domain.example`. Change `frontend/public/config.js` to `window.MELLIFON_API = '/api';`. Serve frontend static files with Nginx; proxy `/api/` to loopback port 8010. Forward neither arbitrary client IP headers nor cookies to third parties. Behind Nginx set `TRUSTED_PROXY_COUNT=1` in `backend/.env` so rate limits use the real client IP (otherwise every user shares the proxy's address). Leave it `0` when clients reach the API directly; forwarding headers are then ignored and cannot be spoofed. The count must equal the exact number of proxies; `deploy/nginx.conf` overwrites `X-Forwarded-For`. Configure TLS and matching security headers/CSP. The development frontend server is not the production web server.
 
 Do not expose `backend/storage`, the database, `.env`, model prompts or Python source through the web server. Private downloads must pass through the authenticated API. Keep cookie traffic on HTTPS; production cookies are Secure, HttpOnly and SameSite=Lax. Use same-origin frontend/API hosting in production.
 
-Ready-to-edit `deploy/` files: `nginx.conf`, `sonora-api.service`, `sonora-worker.service`, `sonora-backup.service/.timer`. Suggested Nginx locations:
+Ready-to-edit `deploy/` files: `nginx.conf`, `mellifon-api.service`, `mellifon-worker.service`, `mellifon-backup.service/.timer`. Suggested Nginx locations:
 
 ```nginx
-root /srv/sonora/frontend;
+root /srv/mellifon/frontend;
 index index.html;
 client_max_body_size 21m;
 location /api/ { proxy_pass http://127.0.0.1:8010; }
@@ -43,7 +43,7 @@ location = / { try_files /index.html =404; }
 location / { return 404; }
 ```
 
-Add HTTPS, headers and timeouts appropriate to your host. Do not enable a broad static directory listing. Use OS permissions to restrict storage to the application service user. Run `python scripts/backup.py <dir> --keep 14` (safe while the app runs; uses SQLite's online backup API, integrity-checks the copy, and includes private audio). `deploy/sonora-backup.timer` schedules it nightly. Encrypt and restrict the backup directory, and test restoration by pointing a copy of the app at a restored `saas.sqlite3` + `users/`. Monitor disk space, worker heartbeats, queue depth, webhook failures and error logs. Do not log scripts, passwords, tokens or audio uploads. Log retention and access should be restricted.
+Add HTTPS, headers and timeouts appropriate to your host. Do not enable a broad static directory listing. Use OS permissions to restrict storage to the application service user. Run `python scripts/backup.py <dir> --keep 14` (safe while the app runs; uses SQLite's online backup API, integrity-checks the copy, and includes private audio). `deploy/mellifon-backup.timer` schedules it nightly. Encrypt and restrict the backup directory, and test restoration by pointing a copy of the app at a restored `saas.sqlite3` + `users/`. Monitor disk space, worker heartbeats, queue depth, webhook failures and error logs. Do not log scripts, passwords, tokens or audio uploads. Log retention and access should be restricted.
 
 Deleting a voice removes its reference and prompt while preserving separately generated history. Deleting a completed history item removes its audio. Billing/usage records remain for accounting. Define and implement your business's account-erasure, retention, consent, privacy and refund policies before public launch. No automated hard account erasure is exposed while subscriptions/accounting may remain active.
 

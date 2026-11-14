@@ -1,8 +1,8 @@
-# Sonora · 음성 복제 및 음성 생성 플랫폼
+# Mellifon · 음성 복제 및 음성 생성 플랫폼
 
 [English](../../README.md) · [문서 언어 선택](README.md)
 
-Sonora는 `Voice-clonner-Application/` 폴더 안에서 독립적으로 실행되는 음성 SaaS입니다. 기존 YouTube 앱의 코드를 가져오거나 해당 앱의 API를 호출하지 않습니다.
+Mellifon는 `Voice-clonner-Application/` 폴더 안에서 독립적으로 실행되는 음성 SaaS입니다. 기존 YouTube 앱의 코드를 가져오거나 해당 앱의 API를 호출하지 않습니다.
 
 ## 기능과 현재 상태
 

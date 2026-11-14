@@ -1,7 +1,7 @@
 export const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const number = n => Number(n||0).toLocaleString();
 export const date = n => new Date(n*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
-export const logo = `<span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>sonora<span class="brand-dot">.</span></span>`;
+export const logo = `<span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>mellifon<span class="brand-dot">.</span></span>`;
 export const icon = (name) => {
   const paths = {grid:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
     sound:'M4 9v6m4-10v14m4-17v20m4-16v12m4-9v6',

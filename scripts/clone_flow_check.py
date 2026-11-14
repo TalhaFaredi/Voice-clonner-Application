@@ -16,7 +16,7 @@ def main():
                              Path('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')] if p.exists())
     output=ROOT/'backend'/'storage'/'qa';output.mkdir(parents=True,exist_ok=True)
     reference='Hello there. This is a clear synthetic voice sample for testing my new audio workspace. Every story begins with a little curiosity.'
-    with tempfile.TemporaryDirectory(prefix='sonora-clone-check-') as profile,sync_playwright() as p:
+    with tempfile.TemporaryDirectory(prefix='mellifon-clone-check-') as profile,sync_playwright() as p:
         context=p.chromium.launch_persistent_context(profile,executable_path=str(chrome),headless=True,
                  viewport={'width':1440,'height':1050})
         page=context.pages[0];errors=[]

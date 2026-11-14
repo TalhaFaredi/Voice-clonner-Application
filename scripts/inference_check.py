@@ -15,7 +15,7 @@ def browser_verify(session,output):
     import tempfile
     chrome=next(p for p in [Path('C:/Program Files/Google/Chrome/Application/chrome.exe'),
                 Path('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')] if p.exists())
-    with tempfile.TemporaryDirectory(prefix='sonora-audio-browser-') as profile,sync_playwright() as p:
+    with tempfile.TemporaryDirectory(prefix='mellifon-audio-browser-') as profile,sync_playwright() as p:
         context=p.chromium.launch_persistent_context(profile,executable_path=str(chrome),headless=True,
                     viewport={'width':1440,'height':1050})
         context.add_cookies([{'name':'voice_session','value':session.cookies.get('voice_session'),
@@ -83,7 +83,7 @@ def main():
     job=call('/voices','POST',data={'name':'Synthetic QA voice','ref_text':script,'consent':'true'},
              files={'audio':('synthetic-reference.wav',reference,'audio/wav')},headers={'Idempotency-Key':uuid.uuid4().hex}).json()
     clone=wait(job)
-    job=call('/generations','POST',json={'text':'Welcome to Sonora. This recording was generated with a saved voice clone in my private workspace.',
+    job=call('/generations','POST',json={'text':'Welcome to Mellifon. This recording was generated with a saved voice clone in my private workspace.',
              'voice_id':clone['voice_id'],'language':'english'},headers={'Idempotency-Key':uuid.uuid4().hex}).json()
     speech=wait(job)
     (output/'real-cloned-speech.wav').write_bytes(call('/audio/generation/'+speech['id']).content)

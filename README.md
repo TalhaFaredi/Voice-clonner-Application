@@ -1,4 +1,4 @@
-<h1 align="center">Sonora</h1>
+<h1 align="center">Mellifon</h1>
 <p align="center"><b>Voice cloning &amp; speech generation platform</b><br>
 Clone a voice from a short sample, write a script, and download natural speech in ten languages — running on your own GPU.</p>
 
@@ -9,7 +9,7 @@ Clone a voice from a short sample, write a script, and download natural speech i
   <img alt="Status" src="https://img.shields.io/badge/status-pre--launch-orange">
 </p>
 
-<p align="center"><img src="docs/screenshots/landing.png" alt="Sonora landing page" width="85%"></p>
+<p align="center"><img src="docs/screenshots/landing.png" alt="Mellifon landing page" width="85%"></p>
 
 **Documentation:** English · [Other languages](docs/i18n/README.md) · [Setup &amp; deployment](docs/setup.md) · [API](docs/api.md) · [Verification](docs/verification.md)
 

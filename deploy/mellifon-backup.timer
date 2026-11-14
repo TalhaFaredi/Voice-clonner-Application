@@ -1,5 +1,5 @@
 [Unit]
-Description=Nightly Sonora backup
+Description=Nightly Mellifon backup
 
 [Timer]
 OnCalendar=*-*-* 03:00:00

@@ -27,7 +27,7 @@ def transcribe_upload(upload, language='auto'):
         abort(503, 'Transcription is not configured. Add OPENROUTER_API_KEY to backend/.env.')
     if language not in TRANSCRIBE_LANGUAGES:
         abort(400, 'Choose a supported recording language or automatic detection.')
-    workdir = Path(tempfile.mkdtemp(prefix='sonora-stt-'))
+    workdir = Path(tempfile.mkdtemp(prefix='mellifon-stt-'))
     try:
         duration = validate_sample(upload, workdir)
         audio_b64 = base64.b64encode((workdir / 'reference.wav').read_bytes()).decode('ascii')

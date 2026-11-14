@@ -12,7 +12,7 @@ import {jobProgress} from './components/progress.js';
 const app=document.getElementById('app');
 let user=null, routeVersion=0, pollVersion=0;
 let pageVoices=[],workerState=null,uploadURL=null;
-const savedKey=kind=>`sonora:${user.id}:${kind}`;
+const savedKey=kind=>`mellifon:${user.id}:${kind}`;
 const privatePages=new Set(['studio','voices','clone','history','billing','settings']);
 const getPage=()=>location.hash.startsWith('#/')?(location.hash.slice(2).split('?')[0]||'home'):'home';
 async function refreshUser(){ const result=await api('/auth/me');user=result.user;document.querySelectorAll('[data-user-credits]').forEach(el=>el.textContent=number(user.credits));return user; }

@@ -1,4 +1,4 @@
-# Sonora documentation languages
+# Mellifon documentation languages
 
 Choose a translated getting-started guide:
 

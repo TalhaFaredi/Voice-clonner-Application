@@ -1,8 +1,8 @@
-# Sonora · Clonage vocal et synthèse vocale
+# Mellifon · Clonage vocal et synthèse vocale
 
 [English](../../README.md) · [Langues de documentation](README.md)
 
-Sonora est une application SaaS autonome dans `Voice-clonner-Application/`. Elle n’importe aucun code de l’application YouTube existante et n’appelle pas son API.
+Mellifon est une application SaaS autonome dans `Voice-clonner-Application/`. Elle n’importe aucun code de l’application YouTube existante et n’appelle pas son API.
 
 ## Fonctionnalités et état actuel
 

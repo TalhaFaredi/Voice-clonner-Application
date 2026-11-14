@@ -13,7 +13,7 @@ def main():
     output.mkdir(parents=True,exist_ok=True)
     chrome=next(p for p in [Path('C:/Program Files/Google/Chrome/Application/chrome.exe'),
                             Path('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')] if p.exists())
-    with tempfile.TemporaryDirectory(prefix='sonora-browser-') as profile,sync_playwright() as p:
+    with tempfile.TemporaryDirectory(prefix='mellifon-browser-') as profile,sync_playwright() as p:
         context=p.chromium.launch_persistent_context(profile,executable_path=str(chrome),headless=True,
                     viewport={'width':1440,'height':1050})
         page=context.pages[0];errors=[]

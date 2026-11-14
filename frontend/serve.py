@@ -28,5 +28,5 @@ class Handler(SimpleHTTPRequestHandler):
 
 if __name__=='__main__':
     port = int(os.getenv('FRONTEND_PORT','5173'))
-    print(f'Sonora frontend: http://localhost:{port}',flush=True)
+    print(f'Mellifon frontend: http://localhost:{port}',flush=True)
     ThreadingHTTPServer(('127.0.0.1',port),Handler).serve_forever()

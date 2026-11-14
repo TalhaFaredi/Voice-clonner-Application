@@ -1,8 +1,8 @@
-# Sonora · 音声クローンと音声生成プラットフォーム
+# Mellifon · 音声クローンと音声生成プラットフォーム
 
 [English](../../README.md) · [ドキュメントの言語](README.md)
 
-Sonora は `Voice-clonner-Application/` 内で独立して動作する音声 SaaS です。既存の YouTube アプリのコードをインポートしたり、その API を呼び出したりしません。
+Mellifon は `Voice-clonner-Application/` 内で独立して動作する音声 SaaS です。既存の YouTube アプリのコードをインポートしたり、その API を呼び出したりしません。
 
 ## 機能と現在の状態
 

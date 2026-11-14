@@ -1642,7 +1642,7 @@ wheels = [
 ]
 
 [[package]]
-name = "sonora"
+name = "mellifon"
 version = "1.0.0"
 source = { virtual = "." }
 dependencies = [

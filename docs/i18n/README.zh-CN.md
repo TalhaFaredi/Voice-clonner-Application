@@ -1,8 +1,8 @@
-# Sonora · 声音克隆与语音生成平台
+# Mellifon · 声音克隆与语音生成平台
 
 [English](../../README.md) · [所有文档语言](README.md)
 
-Sonora 是独立运行的声音克隆 SaaS 项目，全部应用代码位于 `Voice-clonner-Application/`。它不导入或调用原有的 YouTube 应用。
+Mellifon 是独立运行的声音克隆 SaaS 项目，全部应用代码位于 `Voice-clonner-Application/`。它不导入或调用原有的 YouTube 应用。
 
 ## 功能与状态
 

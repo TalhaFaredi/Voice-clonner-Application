@@ -1,7 +1,0 @@
-[Unit]
-Description=Sonora database and audio backup
-
-[Service]
-Type=oneshot
-User=sonora
-ExecStart=/srv/sonora/.venv/bin/python /srv/sonora/scripts/backup.py /var/backups/sonora --keep 14
